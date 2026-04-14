@@ -1,0 +1,14 @@
+﻿<?xml version="1.0"?>
+<DTS:ConnectionManager xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:ObjectName="DWH_AdventureWorks2022"
+  DTS:DTSID="{928FEBE7-B179-4028-BA02-15DB847CEFA9}"
+  DTS:CreationName="OLEDB">
+  <DTS:PropertyExpression
+    DTS:Name="ConnectionString">"Provider=SQLOLEDB;Data Source=" + @[$Project::SERVER_NAME] + ";Initial Catalog=" + @[$Project::DWH_DB_NAME] + ";Integrated Security=SSPI;"</DTS:PropertyExpression>
+  <DTS:ObjectData>
+    <DTS:ConnectionManager
+      DTS:ConnectRetryCount="1"
+      DTS:ConnectRetryInterval="5"
+      DTS:ConnectionString="Data Source=YOUR_SERVER_NAME;Initial Catalog=YOUR_DWH_DB;Provider=SQLOLEDB;Integrated Security=SSPI;" />
+  </DTS:ObjectData>
+</DTS:ConnectionManager>

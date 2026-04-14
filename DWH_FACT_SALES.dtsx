@@ -1,0 +1,166 @@
+﻿<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="4/9/2026 8:18:20 PM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="ENES-DESKTOP"
+  DTS:CreatorName="ENES-DESKTOP\HUAWEI"
+  DTS:DTSID="{4E073FC3-E69D-413A-A1B8-5F47BC4C6845}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="17.0.1010.2"
+  DTS:LocaleID="1055"
+  DTS:ObjectName="DWH_FACT_SALES"
+  DTS:PackageType="5"
+  DTS:ProtectionLevel="0"
+  DTS:VersionBuild="61"
+  DTS:VersionGUID="{A220E1F1-8D97-45B7-8819-E6BA917F928A}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[DWH_AdventureWorks2022]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{12804939-5C5A-4386-B11B-6E8F1E77199B}"
+      DTS:ObjectName="DWH_AdventureWorks2022">
+      <DTS:PropertyExpression
+        DTS:Name="ConnectionString">"Provider=SQLOLEDB;Data Source=" + @[$Project::SERVER_NAME] + ";Initial Catalog=" + @[$Project::DWH_DB_NAME] + ";Integrated Security=SSPI;"</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=ENES-DESKTOP;Initial Catalog=AdventureWorks2022_DWH2;Provider=SQLOLEDB;Integrated Security=SSPI;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[OLTP_AdventureWorks2022]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{8578E4BF-33ED-4CDF-B3A4-7DBA4E140414}"
+      DTS:ObjectName="OLTP_AdventureWorks2022">
+      <DTS:PropertyExpression
+        DTS:Name="ConnectionString">"Provider=SQLOLEDB;Data Source=" + @[$Project::SERVER_NAME] + ";Initial Catalog=" + @[$Project::OLTP_DB_NAME] + ";Integrated Security=SSPI;"</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=ENES-DESKTOP;Initial Catalog=AdventureWorks2022;Provider=SQLOLEDB;Integrated Security=SSPI;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{36EDFF9A-22AE-47F2-B3C2-689BF78D9986}"
+      DTS:IncludeInDebugDump="6789"
+      DTS:Namespace="User"
+      DTS:ObjectName="LAST_DATE">
+      <DTS:VariableValue
+        DTS:DataType="7">4/9/2026 9:38:00 PM</DTS:VariableValue>
+    </DTS:Variable>
+  </DTS:Variables>
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\ETL_LOG_UPSERT"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{CA8F07BE-DCE7-4D6A-9665-481C3F33CDCA}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="ETL_LOG_UPSERT"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{12804939-5C5A-4386-B11B-6E8F1E77199B}"
+          SQLTask:SqlStatementSource="EXEC ETL_LOG_UPSERT&#xA;@PackageName= ?,&#xA;@TableName='DWH.Fact_Sales'" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="System::PackageName"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\MERGE INTO"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{85557C96-A8C7-4669-B5A1-068E24610841}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="MERGE INTO"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{12804939-5C5A-4386-B11B-6E8F1E77199B}"
+          SQLTask:SqlStatementSource="WITH SOURCE_CTE AS&#xA;(&#xA;    SELECT  &#xA;        SD.SalesOrderDetailID,&#xA;        SH.SalesOrderID,&#xA;        SH.OrderDate,&#xA;        SH.DueDate,&#xA;        SH.ShipDate,&#xA;&#xA;        ---------------------------------------------------&#xA;        -- DIMENSIONS (Kademeli Join Mantığı)&#xA;        ---------------------------------------------------&#xA;        &#xA;        -- CUSTOMER&#xA;        ISNULL(ISNULL(DC.DimCustomerID, DC_Curr.DimCustomerID), -1) AS DimCustomerID,&#xA;        &#xA;        -- SALESPERSON&#xA;        ISNULL(ISNULL(DSP.DimSalesPersonID, DSP_Curr.DimSalesPersonID), -1) AS DimSalesPersonID,&#xA;        &#xA;        -- TERRITORY&#xA;        ISNULL(ISNULL(DT.DimTerritoryID, DT_Curr.DimTerritoryID), -1) AS DimTerritoryID,&#xA;&#xA;        -- PRODUCT&#xA;        ISNULL(ISNULL(DP.DimProductID, DP_Curr.DimProductID), -1) AS DimProductID,&#xA;&#xA;        ---------------------------------------------------&#xA;        -- MEASURES &amp; METADATA&#xA;        ---------------------------------------------------&#xA;        SD.OrderQty,&#xA;        SD.UnitPrice,&#xA;&#xA;        CASE &#xA;            WHEN SH.ModifiedDate &gt; SD.ModifiedDate THEN SH.ModifiedDate &#xA;            ELSE SD.ModifiedDate &#xA;        END AS ModifiedDate,&#xA;&#xA;        SD.OrderQty * SD.UnitPrice AS Revenue,&#xA;        SD.OrderQty * ISNULL(DP.StandardCost, DP_Curr.StandardCost) AS Cost,&#xA;        (SD.OrderQty * SD.UnitPrice) - (SD.OrderQty * ISNULL(DP.StandardCost, DP_Curr.StandardCost)) AS Profit&#xA;&#xA;    FROM ODS.SalesOrderHeader SH&#xA;    LEFT JOIN ODS.SalesOrderDetail SD &#xA;        ON SH.SalesOrderID = SD.SalesOrderID&#xA;&#xA;    -- CUSTOMER: Önce tarihe göre, yoksa en güncele bak&#xA;    LEFT JOIN DWH.Dim_Customer DC &#xA;        ON SH.CustomerID = DC.CustomerID&#xA;        AND SH.OrderDate &gt;= DC.StartDate AND SH.OrderDate &lt; ISNULL(DC.EndDate, '9999-12-31')&#xA;    LEFT JOIN DWH.Dim_Customer DC_Curr &#xA;        ON SH.CustomerID = DC_Curr.CustomerID AND DC_Curr.IsActive = 1&#xA;&#xA;    -- SALESPERSON: Önce tarihe göre, yoksa en güncele bak&#xA;    LEFT JOIN DWH.Dim_SalesPerson DSP &#xA;        ON SH.SalesPersonID = DSP.BusinessEntityID&#xA;        AND SH.OrderDate &gt;= DSP.StartDate AND SH.OrderDate &lt; ISNULL(DSP.EndDate, '9999-12-31')&#xA;    LEFT JOIN DWH.Dim_SalesPerson DSP_Curr &#xA;        ON SH.SalesPersonID = DSP_Curr.BusinessEntityID AND DSP_Curr.IsActive = 1&#xA;&#xA;    -- TERRITORY: Önce tarihe göre, yoksa en güncele bak&#xA;    LEFT JOIN DWH.Dim_Territory DT &#xA;        ON SH.TerritoryID = DT.TerritoryID&#xA;        AND SH.OrderDate &gt;= DT.StartDate AND SH.OrderDate &lt; ISNULL(DT.EndDate, '9999-12-31')&#xA;    LEFT JOIN DWH.Dim_Territory DT_Curr &#xA;        ON SH.TerritoryID = DT_Curr.TerritoryID AND DT_Curr.IsActive = 1&#xA;&#xA;    -- PRODUCT: Önce tarihe göre, yoksa en güncele bak&#xA;    LEFT JOIN DWH.Dim_Product DP &#xA;        ON SD.ProductID = DP.ProductID&#xA;        AND SH.OrderDate &gt;= DP.StartDate AND SH.OrderDate &lt; ISNULL(DP.EndDate, '9999-12-31')&#xA;    LEFT JOIN DWH.Dim_Product DP_Curr &#xA;        ON SD.ProductID = DP_Curr.ProductID AND DP_Curr.IsActive = 1&#xA;)&#xA;MERGE DWH.Fact_Sales AS TARGET&#xA;USING SOURCE_CTE AS SOURCE&#xA;ON TARGET.SalesOrderDetailID = SOURCE.SalesOrderDetailID&#xA;&#xA;---------------------------------------------------&#xA;-- UPDATE (Herhangi bir ID veya Değer Değiştiyse)&#xA;---------------------------------------------------&#xA;WHEN MATCHED AND &#xA;(&#xA;    TARGET.Dim_CustomerID      &lt;&gt; SOURCE.DimCustomerID OR&#xA;    TARGET.Dim_SalesPersonID   &lt;&gt; SOURCE.DimSalesPersonID OR&#xA;    TARGET.Dim_TerritoryID     &lt;&gt; SOURCE.DimTerritoryID OR&#xA;    TARGET.Dim_ProductID       &lt;&gt; SOURCE.DimProductID OR&#xA;    TARGET.OrderQty            &lt;&gt; SOURCE.OrderQty OR&#xA;    TARGET.UnitPrice           &lt;&gt; SOURCE.UnitPrice OR&#xA;    TARGET.ModifiedDate        &lt;&gt; SOURCE.ModifiedDate&#xA;)&#xA;THEN UPDATE SET&#xA;      TARGET.SalesOrderID      = SOURCE.SalesOrderID&#xA;    , TARGET.OrderDate         = SOURCE.OrderDate&#xA;    , TARGET.Dim_CustomerID    = SOURCE.DimCustomerID&#xA;    , TARGET.Dim_SalesPersonID = SOURCE.DimSalesPersonID&#xA;    , TARGET.Dim_TerritoryID   = SOURCE.DimTerritoryID&#xA;    , TARGET.Dim_ProductID     = SOURCE.DimProductID&#xA;    , TARGET.OrderQty          = SOURCE.OrderQty&#xA;    , TARGET.UnitPrice         = SOURCE.UnitPrice&#xA;    , TARGET.Revenue           = SOURCE.Revenue&#xA;    , TARGET.Cost              = SOURCE.Cost&#xA;    , TARGET.Profit            = SOURCE.Profit&#xA;    , TARGET.ModifiedDate      = SOURCE.ModifiedDate&#xA;&#xA;---------------------------------------------------&#xA;-- INSERT&#xA;---------------------------------------------------&#xA;WHEN NOT MATCHED BY TARGET&#xA;THEN INSERT &#xA;(&#xA;    SalesOrderDetailID, SalesOrderID, OrderDate, DueDate, ShipDate,&#xA;    Dim_CustomerID, Dim_SalesPersonID, Dim_TerritoryID, Dim_ProductID,&#xA;    OrderQty, UnitPrice, Revenue, Cost, Profit, ModifiedDate&#xA;)&#xA;VALUES &#xA;(&#xA;    SOURCE.SalesOrderDetailID, SOURCE.SalesOrderID, SOURCE.OrderDate, SOURCE.DueDate, SOURCE.ShipDate,&#xA;    SOURCE.DimCustomerID, SOURCE.DimSalesPersonID, SOURCE.DimTerritoryID, SOURCE.DimProductID,&#xA;    SOURCE.OrderQty, SOURCE.UnitPrice, SOURCE.Revenue, SOURCE.Cost, SOURCE.Profit, SOURCE.ModifiedDate&#xA;);" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::LAST_DATE"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="7"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 3]"
+      DTS:CreationName=""
+      DTS:DTSID="{2C9E02BA-E67E-4C23-AECE-55FF55C17D2C}"
+      DTS:From="Package\MERGE INTO"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 3"
+      DTS:To="Package\ETL_LOG_UPSERT" />
+  </DTS:PrecedenceConstraints>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="166,42"
+          Id="Package\ETL_LOG_UPSERT"
+          TopLeft="242,262" />
+        <NodeLayout
+          Size="141,42"
+          Id="Package\MERGE INTO"
+          TopLeft="258,151" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 3]"
+          TopLeft="326.75,193">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,69"
+              Start="0,0"
+              End="0,61.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,61.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>
