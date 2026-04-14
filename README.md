@@ -8,9 +8,9 @@ Bu proje, **AdventureWorks2022** veritabanını kaynak alarak geliştirilmiş, u
 
 Veri transfer süreci üç temel aşamadan oluşmaktadır:
 
-1.  **STG (Staging/Dump) Katmanı:** Kaynak sistemden çekilen ham veriler, herhangi bir dönüşüme uğramadan doğrudan `_Dump` (Staging) tablolarına aktarılır. Bu katman, kaynak veritabanı üzerindeki okuma yükünü (IO) minimize etmek için "Landing Zone" görevini üstlenir.
-2.  **ODS (Operational Data Store) Katmanı:** Dump tablolarındaki veriler, `MERGE INTO` komutları kullanılarak ODS katmanına senkronize edilir. Bu aşamada temel veri temizliği, tip dönüşümleri ve veri bütünlüğü kontrolleri gerçekleştirilir.
-3.  **DWH (Data Warehouse) Katmanı:** ODS'den alınan veriler; iş kuralları, **SCD (Slowly Changing Dimension) Type 2** mantığı ve Surrogate Key atamaları ile nihai Boyut (Dimension) ve Olgu (Fact) tablolarına dönüştürülür.
+1.  **STG (Staging/Dump) Katmanı:** Kaynak sistemden çekilen ham veriler, herhangi bir dönüşüme uğramadan doğrudan `_Dump` (Staging) tablolarına aktarılır. Bu katman, kaynak veritabanı üzerindeki okuma yükünü minimize etmek için kullanılır.
+2.  **ODS (Operational Data Store) Katmanı:** Dump tablolarındaki veriler, `MERGE INTO` komutları kullanılarak ODS katmanına aktarılır. 
+3.  **DWH (Data Warehouse) Katmanı:** ODS'den alınan veriler **SCD (Slowly Changing Dimension) Type 2** mantığı ve Surrogate Key atamaları ile nihai Boyut (Dimension) ve Olgu (Fact) tablolarına dönüştürülür.
 
 ---
 
@@ -21,7 +21,7 @@ Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyi
 1.  **SQL Server Management Studio (SSMS)** uygulamasını açın.
 2.  `database/database_setup.sql` dosyasını bir query sayfasında açın.
 3.  Hedef veritabanınızda (Örn: `AdventureWorks2022_DWH2`) scripti **Execute** ederek tabloları ve stored procedure'leri oluşturun.
-4.  SSIS projesi içindeki `Project.params` dosyasından kendi sunucu isminizi (`SERVER_NAME`) güncelleyin.
+4.  SSIS projesi içindeki `Project.params` dosyasından kendi sunucu isminizi (`SERVER_NAME`) ve DB isimlerini güncelleyin.
 
 ---
 
@@ -39,12 +39,12 @@ Veriyi önce Dump tablolarına aktarıp ardından ODS katmanına taşıyan paket
 * `ODS_TERRITORY.dtsx`
 
 #### 2. DWH Katmanı (Dimension & Fact)
-Veriyi ambar yapısına uygun şekilde, tarihsel izlenebilirlik (SCD) ekleyerek işleyen paketler:
+Veriyi ambarı yapısına uygun şekilde, tarihsel izlenebilirlik (SCD) ekleyerek işleyen paketler:
 * **Dimension Paketleri (SCD Type 2):** `DWH_DIM_CUSTOMER.dtsx`, `DWH_DIM_PRODUCT.dtsx`, `DWH_DIM_SALES_PERSON.dtsx`, `DWH_DIM_TERRITORY.dtsx`
 * **Fact Paketi:** `DWH_FACT_SALES.dtsx` (Merkezi satış olgu tablosu).
 
 #### 3. Ana Kontrol Paketi
-* **`MAIN_PACKAGE.dtsx`**: Tüm ETL sürecini (STG -> ODS -> DWH) bağımlılık sırasına göre otomatik olarak tetikleyen ana orkestrasyon paketidir.
+* **`MAIN_PACKAGE.dtsx`**: Tüm ETL sürecini (STG -> ODS -> DWH) bağımlılık sırasına göre otomatik olarak tetikleyen ana pakettir.
 
 ---
 
@@ -52,7 +52,6 @@ Veriyi ambar yapısına uygun şekilde, tarihsel izlenebilirlik (SCD) ekleyerek 
 
 * **Incremental Load:** Dump tabloları üzerinden yapılan `MERGE` işlemleri sayesinde sadece değişen veya yeni eklenen veriler işlenerek performans maksimize edilmiştir.
 * **SCD Type 2:** Boyut tablolarında tarihsel veri takibi sağlanarak analizlerin doğruluğu ve geçmişe dönük raporlama kabiliyeti korunmuştur.
-* **Güvenlik:** Proje `DontSaveSensitive` koruma düzeyinde yapılandırılmıştır. Hassas bilgiler (şifreler vb.) dosyalara kaydedilmez.
 * **Merkezi Yönetim:** `Project.params` dosyası ile tüm paketlerin bağlantı dizeleri ve sunucu bilgileri tek bir noktadan yönetilir.
 
 ---
